@@ -19,19 +19,29 @@ class Field:
         setattr(instance, self.name, value)
 
 
-class Person:
-    name = Field()
-    age = Field()
-    salary = Field()
+class MetaField(type):
+    def __new__(mcls, clsname, bases, clsdict):
+        fields = clsdict["_fields"]
+        for field in fields:
+            clsdict[field] = Field()
 
-    def __init__(self, name, age, salary):
-        self.name = name
-        self.age = age
-        self.salary = salary
+        def __init__(self, *args, **kwargs):
+            for name, val in zip(fields, args):
+                self.__dict__[name] = val
 
-    def __repr__(self):
-        key_val_pairs = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
-        return f"{self.__class__.__name__}({key_val_pairs})"
+        clsdict["__init__"] = __init__
+
+        def __repr__(self):
+            key_val_pairs = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+            return f"{self.__class__.__name__}({key_val_pairs})"
+
+        clsdict["__repr__"] = __repr__
+
+        return super().__new__(mcls, clsname, bases, clsdict)
+
+
+class Person(metaclass=MetaField):
+    _fields = ["name", "age", "salary"]
 
 
 if __name__ == "__main__":
