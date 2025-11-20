@@ -1,0 +1,4 @@
+.emacs.desktop*
+ARCHIVE/
+__pycache__/
+
